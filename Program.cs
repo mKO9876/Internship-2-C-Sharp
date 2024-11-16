@@ -50,33 +50,31 @@ while (true)
 
 void Users()
 {
+    Console.WriteLine("Odabrali ste: Korisnici. ");
     while (true)
     {
-        Console.WriteLine("Odabrali ste: Korisnici. ");
         Console.WriteLine("1 - Unos novog korisnika\n2 - Brisanje korisnika\n3 - Uređivanje korsnika\n4 - Pregled korsnika\n5 - Povratak");
         string user_choice = CheckUserInput("Akcija: ");
 
         if (user_choice == "1")
         {
-            while (true)
-            {
-                string name = CheckUserInput("Unesite ime: ");
-                string last_name = CheckUserInput("Unesite prezime: ");
 
-                DateTime birth_date = GetBirthDay();
-                if (GetUserId(name, last_name) == -1)
-                {
-                    Tuple<string, string, DateTime> new_user = Tuple.Create(name.ToLower(), last_name.ToLower(), birth_date);
-                    users_list[next_user_id] = new_user;
-                    accounts_list[(next_user_id, "tekući")] = 100.00M;
-                    accounts_list[(next_user_id, "žiro")] = 0.00M;
-                    accounts_list[(next_user_id, "prepaid")] = 0.00M;
-                    next_user_id++;
-                    Console.WriteLine("Izrađen novi korisnik.\n");
-                    return;
-                }
-                else Console.WriteLine("Korisnik već posoji. \n");
+            string name = CheckUserInput("Unesite ime: ");
+            string last_name = CheckUserInput("Unesite prezime: ");
+
+            DateTime birth_date = GetBirthDay();
+            if (GetUserId(name, last_name) == -1)
+            {
+                Tuple<string, string, DateTime> new_user = Tuple.Create(name.ToLower(), last_name.ToLower(), birth_date);
+                users_list[next_user_id] = new_user;
+                accounts_list[(next_user_id, "tekući")] = 100.00M;
+                accounts_list[(next_user_id, "žiro")] = 0.00M;
+                accounts_list[(next_user_id, "prepaid")] = 0.00M;
+                next_user_id++;
+                Console.WriteLine("Izrađen novi korisnik.\n");
             }
+            else Console.WriteLine("Korisnik već posoji. \n");
+
         }
 
 
@@ -84,47 +82,54 @@ void Users()
         {
             while (true)
             {
-                Console.WriteLine("1 - Brisanje po id-u \n2 - Brisanje po imenu i prezimenu\n");
+                Console.WriteLine("1 - Brisanje po id-u \n2 - Brisanje po imenu i prezimenu\n3 - Povratak");
                 user_choice = CheckUserInput("Akcija: ");
 
                 if (user_choice == "2")
                 {
-                    while (true)
+
+                    string name = CheckUserInput("Unesite ime: ");
+                    string last_name = CheckUserInput("Unesite prezime: ");
+                    bool check_if_printed = false;
+
+                    foreach (KeyValuePair<int, Tuple<string, string, DateTime>> user in users_list)
                     {
-                        string name = CheckUserInput("Unesite ime: ");
-                        string last_name = CheckUserInput("Unesite prezime: ");
-
-                        foreach (KeyValuePair<int, Tuple<string, string, DateTime>> user in users_list)
+                        if (string.Equals(user.Value.Item1, name) && string.Equals(user.Value.Item2, last_name))
                         {
-                            if (string.Equals(user.Value.Item1, name) && string.Equals(user.Value.Item2, last_name))
+                            if (CheckUserInput("Želite li obrisati korisnika (y/n): ").ToLower() == "y")
                             {
-                                if (CheckUserInput("Želite li obrisati korisnika (y/n): ").ToLower() == "y")
-                                {
-                                    RemoveAccounts(user.Key);
-                                    users_list.Remove(user.Key);
-                                    Console.WriteLine("Izbrisan korisnik.\n");
-                                    return;
-                                }
-
+                                RemoveAccounts(user.Key);
+                                users_list.Remove(user.Key);
+                                Console.WriteLine("Izbrisan korisnik.\n");
+                                check_if_printed = true;
+                                break;
                             }
+
                         }
-                        Console.WriteLine("Nije pronađena osoba sa tim imenom i prezimenom. \n");
                     }
+                    if (!check_if_printed) Console.WriteLine("Nije pronađena osoba sa tim imenom i prezimenom. \n");
+
                 }
                 else if (user_choice == "1")
                 {
                     while (true)
                     {
-                        int user_id = GetInt("Unesite ID: ");
-                        RemoveAccounts(user_id);
-                        if (users_list.Remove(user_id))
+                        int user_id;
+                        do
                         {
+                            user_id = GetInt("Unesite ID: ");
+                            if (!users_list.ContainsKey(user_id)) Console.WriteLine("Korisnik ne postoji, pokušajte ponovno.\n");
+                        } while (!users_list.ContainsKey(user_id));
+
+                        if (CheckUserInput("Želite li izbrisati korisnika (y/n): ").ToLower() == "y")
+                        {
+                            users_list.Remove(user_id);
                             Console.WriteLine("Izbrisan korisnik.\n");
-                            return;
+                            break;
                         }
-                        else Console.WriteLine("Nije pronađena osoba sa tim ID-jem\n");
                     }
                 }
+                else if (user_choice == "3") break;
                 else Console.WriteLine("Nepoznata naredba.\n");
             }
         }
@@ -132,79 +137,87 @@ void Users()
 
         else if (user_choice == "3")
         {
+
+            int user_id;
+            do
+            {
+                user_id = GetInt("Unesite ID: ");
+                if (!users_list.ContainsKey(user_id)) Console.WriteLine("Korisnik ne postoji, pokušajte ponovno.\n");
+            } while (!users_list.ContainsKey(user_id));
             while (true)
             {
-                while (true)
+                string name = CheckUserInput("Unesite ime: ");
+                string last_name = CheckUserInput("Unesite prezime: ");
+                DateTime birth_date = GetBirthDay();
+                if (GetUserId(name, last_name) == -1)
                 {
-
-                    int user_id = GetInt("Unesite ID: ");
-                    if (users_list.ContainsKey(user_id))
+                    Tuple<string, string, DateTime> edit_user = Tuple.Create(name, last_name, birth_date);
+                    if (CheckUserInput("Želite li izmijeniti ovog korisnika (y/n): ").ToLower() == "y")
                     {
-                        string name = CheckUserInput("Unesite ime: ");
-                        string last_name = CheckUserInput("Unesite prezime: ");
-                        DateTime birth_date = GetBirthDay();
-                        if (GetUserId(name, last_name) == -1)
-                        {
-                            Tuple<string, string, DateTime> edit_user = Tuple.Create(name, last_name, birth_date);
-                            if (CheckUserInput("Želite li izmijeniti ovog korisnika (y/n): ").ToLower() == "y")
-                            {
-                                users_list[user_id] = edit_user;
-                                Console.WriteLine("Uspješno izmijenjeni korsisnički podaci");
-                            }
-                        }
-                        else Console.WriteLine("Ime i prezime se već koristi.\n");
-
+                        users_list[user_id] = edit_user;
+                        Console.WriteLine("Uspješno izmijenjeni korsisnički podaci");
+                        break;
                     }
-                    else Console.WriteLine("Ne postoji korisnik sa tim ID-jem.\n");
-
+                    else Console.WriteLine("Odbijeno.");
                 }
+                else Console.WriteLine("Ime i prezime se već koristi.\n");
             }
+
 
         }
 
 
         else if (user_choice == "4")
         {
-            if (users_list.Count == 0)
+            while (true)
             {
-                Console.WriteLine("Trenutan broj korisnika je 0. Molim Vas unesite korisnike. \n");
-                return;
-            }
-            else
-            {
-                Console.WriteLine("1 - Ispis abecedno \n2 - Ispis starijih od 30 godina\n3- Ispis svih kojima je barem jedan račun u minusu\n");
-                user_choice = CheckUserInput("Akcija: ");
+                if (users_list.Count == 0)
+                {
+                    Console.WriteLine("Trenutan broj korisnika je 0. Molim Vas unesite korisnike. \n");
+                    return;
+                }
+                else
+                {
+                    Console.WriteLine("1 - Ispis abecedno \n2 - Ispis starijih od 30 godina\n3- Ispis svih kojima je barem jedan račun u minusu\n4- Povratak");
+                    user_choice = CheckUserInput("Akcija: ");
 
-                if (user_choice == "1")
-                {
-                    var dict_sorted = users_list.OrderByDescending(user => user.Value.Item2);
-                    foreach (var user in users_list)
+                    if (user_choice == "1")
                     {
-                        Console.WriteLine($"{user.Key} - {user.Value.Item1} - {user.Value.Item2} - {user.Value.Item3.Date.ToString("dd-MM-yyyy")}");
+                        var dict_sorted = users_list.OrderByDescending(user => user.Value.Item2);
+                        foreach (var user in users_list)
+                        {
+                            Console.WriteLine($"{user.Key} - {user.Value.Item1} - {user.Value.Item2} - {user.Value.Item3.Date.ToString("dd-MM-yyyy")}");
+                        }
+                        Console.WriteLine("\n");
                     }
-                    Console.WriteLine("\n");
-                }
 
-                else if (user_choice == "2")
-                {
-                    DateTime today = DateTime.Today;
-                    foreach (var user in users_list)
+                    else if (user_choice == "2")
                     {
-                        int age = today.Year - user.Value.Item3.Year;
-                        if (age > 30) Console.WriteLine($"{user.Key} - {user.Value.Item1} - {user.Value.Item2} - {user.Value.Item3.ToString("dd-MM-YYYY")}");
+                        DateTime today = DateTime.Today;
+                        foreach (var user in users_list)
+                        {
+                            int age = today.Year - user.Value.Item3.Year;
+                            if (age > 30) Console.WriteLine($"{user.Key} - {user.Value.Item1} - {user.Value.Item2} - {user.Value.Item3.ToString("dd-MM-yyy")}");
+                        }
+                        Console.WriteLine("\n");
                     }
-                    Console.WriteLine("\n");
-                }
-                else if (user_choice == "3")
-                {
-                    foreach (var user in users_list)
+                    else if (user_choice == "3")
                     {
-                        if (accounts_list[(user.Key, acc_names[0])] < 0 || accounts_list[(user.Key, acc_names[1])] < 0 || accounts_list[(user.Key, acc_names[2])] < 0)
-                            Console.WriteLine($"{user.Key} - {user.Value.Item1} - {user.Value.Item2} - {user.Value.Item3.ToString("dd-MM-YYYY")}");
+                        bool check_if_printed = false;
+                        foreach (var user in users_list)
+                        {
+                            if (accounts_list[(user.Key, acc_names[0])] < 0 || accounts_list[(user.Key, acc_names[1])] < 0 || accounts_list[(user.Key, acc_names[2])] < 0)
+                            {
+                                Console.WriteLine($"{user.Key} - {user.Value.Item1} - {user.Value.Item2} - {user.Value.Item3.ToString("dd-MM-yyyy")}");
+                                check_if_printed = true;
+                            }
+                        }
+                        if (!check_if_printed) Console.WriteLine("Nema korisnika sa tim kriterijem.\n");
+                        Console.WriteLine("\n");
                     }
-                    Console.WriteLine("\n");
+                    else if (user_choice == "4") break;
+                    else Console.WriteLine("Nepoznata naredba.\n");
                 }
-                else Console.WriteLine("Nepoznata naredba.\n");
             }
         }
 
@@ -223,102 +236,134 @@ void Accounts()
         Console.WriteLine("Trenutan broj korisnika je 0.\n");
         return;
     }
-
-    string name = CheckUserInput("Unesite ime: ");
-    string last_name = CheckUserInput("Unesite prezime: ");
+    string name, last_name;
+    do
+    {
+        name = CheckUserInput("Unesite ime: ");
+        last_name = CheckUserInput("Unesite prezime: ");
+        if (GetUserId(name, last_name) == -1) Console.WriteLine("Korisnik ne postoji, pokušajte ponovno.");
+    } while (GetUserId(name, last_name) == -1);
     int user_id = GetUserId(name, last_name);
 
-    if (user_id == -1)
-    {
-        Console.WriteLine("Korisnik ne postoji.\n");
-        return;
-
-    }
     string account_name = GetValidAccountName();
-    Console.WriteLine("Račun pronađen.\n1 - Unos nove transakcije\n2 - Brisanje transakcije\n3 - Uređivanje transakcije\n4 - Pregled transakcija\n5 - Financijsko izvješće\n6 - Povratak");
-    string user_choice = CheckUserInput("Akcija: ");
-
-    if (user_choice == "1")
+    Console.WriteLine("Račun pronađen.");
+    while (true)
     {
-        Console.WriteLine("1 - Trenutna transakcija\n2 - Zakazana transakcija");
-        string next_user_choice = CheckUserInput("Akcija: ");
-        if (next_user_choice == "1") MakeTransaction(true, user_id, account_name);
-        else MakeTransaction(false, user_id, account_name);
-    }
 
-    else if (user_choice == "2")
-    {
-        Console.WriteLine("Brisanje:\n1 - po ID-u\n2 - ispod unesenog iznosa\n3 - iznad unesenog iznosa\n4 - svih prihoda\n5 - svih rashoda\n6 - svih transakcija za odabranu kategoriju\n7 - Povratak\n");
-        user_choice = CheckUserInput("Akcija: ");
-        List<(int, int, string)> delete_transactions = new();
+        Console.WriteLine("1 - Unos nove transakcije\n2 - Brisanje transakcije\n3 - Uređivanje transakcije\n4 - Pregled transakcija\n5 - Financijsko izvješće\n6 - Povratak");
+        string user_choice = CheckUserInput("Akcija: ");
+
         if (user_choice == "1")
         {
             while (true)
             {
-                int transaction_id = GetInt("Unesite ID transakcije: ");
-                if (CheckUserInput("Želite li izbrisati transakciju (y/n): ").ToLower() == "y")
+                Console.WriteLine("1 - Trenutna transakcija\n2 - Zakazana transakcija\n3 - Povratak");
+                user_choice = CheckUserInput("Akcija: ");
+                if (user_choice == "1")
                 {
-                    if (transactions_list.Remove((user_id, transaction_id, account_name)))
+                    MakeTransaction(true, user_id, account_name);
+                    break;
+                }
+                else if (user_choice == "2")
+                {
+                    MakeTransaction(false, user_id, account_name);
+                    break;
+                }
+                else if (user_choice == "3") break;
+                else Console.WriteLine("Nepoznata naredba.\n");
+            }
+        }
+
+        else if (user_choice == "2")
+        {
+            while (true)
+            {
+                Console.WriteLine("Brisanje:\n1 - po ID-u\n2 - ispod unesenog iznosa\n3 - iznad unesenog iznosa\n4 - svih prihoda\n5 - svih rashoda\n6 - svih transakcija za odabranu kategoriju\n7 - Povratak\n");
+                user_choice = CheckUserInput("Akcija: ");
+                List<(int, int, string)> delete_transactions = new();
+                while (true)
+                {
+                    if (user_choice == "1")
                     {
-                        Console.WriteLine("Uspješno obrisana transakcija");
-                        return;
+                        while (true)
+                        {
+                            int transaction_id;
+                            do
+                            {
+                                transaction_id = GetInt("Unesite ID transakcije: ");
+                                if (!transactions_list.ContainsKey((user_id, transaction_id, account_name))) Console.WriteLine("Ne postoji transakcija sa tim ID-jem.\n");
+                            } while (!transactions_list.ContainsKey((user_id, transaction_id, account_name)));
+
+                            if (CheckUserInput("Želite li izbrisati transakciju (y/n): ").ToLower() == "y")
+                            {
+                                transactions_list.Remove((user_id, transaction_id, account_name));
+
+                                Console.WriteLine("Uspješno obrisana transakcija");
+                                break;
+
+                            }
+                            else Console.WriteLine("Odbijeno");
+                        }
                     }
-                    else Console.WriteLine("Transakcija ne postoji.\n");
+                    else if (user_choice == "2")
+                    {
+                        decimal value = GetDecimal("Unesite novčanu vrijednost: ");
+                        foreach (var transaction in transactions_list)
+                        {
+                            if (transaction.Key.Item1 == user_id && transaction.Key.Item3 == account_name && transaction.Value.Item1 < value) delete_transactions.Add(transaction.Key);
+                        }
+                        DeleteTransactions(delete_transactions);
+                    }
+                    else if (user_choice == "3")
+                    {
+                        decimal value = GetDecimal("Unesite novčanu vrijednost: ");
+                        foreach (var transaction in transactions_list)
+                        {
+                            if (transaction.Key.Item1 == user_id && transaction.Key.Item3 == account_name && transaction.Value.Item1 > value) delete_transactions.Add(transaction.Key);
+                        }
+                        DeleteTransactions(delete_transactions);
+                    }
+                    else if (user_choice == "4")
+                    {
+                        foreach (var transaction in transactions_list)
+                        {
+                            if (transaction.Key.Item1 == user_id && transaction.Key.Item3 == account_name && transaction.Value.Item2) delete_transactions.Add(transaction.Key);
+                        }
+                        DeleteTransactions(delete_transactions);
+                    }
+                    else if (user_choice == "5")
+                    {
+                        foreach (var transaction in transactions_list)
+                        {
+                            if (transaction.Key.Item1 == user_id && transaction.Key.Item3 == account_name && !transaction.Value.Item2) delete_transactions.Add(transaction.Key);
+                        }
+                        DeleteTransactions(delete_transactions);
+                    }
+                    else if (user_choice == "6")
+                    {
+                        string category = CheckCategory();
+                        foreach (var transaction in transactions_list)
+                        {
+                            if (transaction.Key.Item1 == user_id && transaction.Key.Item3 == account_name && transaction.Value.Item3 == category) delete_transactions.Add(transaction.Key);
+                        }
+                        DeleteTransactions(delete_transactions);
+                    }
+                    else if (user_choice == "7") break;
+                    else Console.WriteLine("Nepoznata naredba.\n");
                 }
             }
         }
-        else if (user_choice == "2")
-        {
-            decimal value = GetDecimal("Unesite novčanu vrijednost: ");
-            foreach (var transaction in transactions_list)
-            {
-                if (transaction.Key.Item1 == user_id && transaction.Key.Item3 == account_name && transaction.Value.Item1 < value) delete_transactions.Add(transaction.Key);
-            }
-            DeleteTransactions(delete_transactions);
-        }
+
         else if (user_choice == "3")
         {
-            decimal value = GetDecimal("Unesite novčanu vrijednost: ");
-            foreach (var transaction in transactions_list)
+            int transaction_id;
+            do
             {
-                if (transaction.Key.Item1 == user_id && transaction.Key.Item3 == account_name && transaction.Value.Item1 > value) delete_transactions.Add(transaction.Key);
-            }
-            DeleteTransactions(delete_transactions);
-        }
-        else if (user_choice == "4")
-        {
-            foreach (var transaction in transactions_list)
-            {
-                if (transaction.Key.Item1 == user_id && transaction.Key.Item3 == account_name && transaction.Value.Item2) delete_transactions.Add(transaction.Key);
-            }
-            DeleteTransactions(delete_transactions);
-        }
-        else if (user_choice == "5")
-        {
-            foreach (var transaction in transactions_list)
-            {
-                if (transaction.Key.Item1 == user_id && transaction.Key.Item3 == account_name && !transaction.Value.Item2) delete_transactions.Add(transaction.Key);
-            }
-            DeleteTransactions(delete_transactions);
-        }
-        else if (user_choice == "6")
-        {
-            string category = CheckCategory();
-            foreach (var transaction in transactions_list)
-            {
-                if (transaction.Key.Item1 == user_id && transaction.Key.Item3 == account_name && transaction.Value.Item3 == category) delete_transactions.Add(transaction.Key);
-            }
-            DeleteTransactions(delete_transactions);
-        }
-        else if (user_choice == "7") return;
-        else Console.WriteLine("Nepoznata naredba.\n");
-    }
+                transaction_id = GetInt("Unesite ID transakcije: ");
+                if (!transactions_list.ContainsKey((user_id, transaction_id, account_name)))
+                    Console.WriteLine("Ne postoji transakcija sa tim ID-jem.\n");
+            } while (!transactions_list.ContainsKey((user_id, transaction_id, account_name)));
 
-    else if (user_choice == "3")
-    {
-        int transaction_id = GetInt("Unesite ID transakcije: ");
-        if (transactions_list[(user_id, transaction_id, account_name)] != null)
-        {
             decimal value = transactions_list[(user_id, transaction_id, account_name)].Item1;
             string category = CheckCategory();
             string description = CheckUserInput("Unesite opis: ");
@@ -329,205 +374,232 @@ void Accounts()
             {
                 transactions_list[(user_id, next_transaction_id, account_name)] = transaction_detail;
                 Console.WriteLine("Uspješno izmijenjena transakcija.\n");
+                break;
             }
-            return;
-        }
-        else Console.WriteLine("Ne postoji transakcija sa tim ID-jem.\n");
-    }
+            else Console.WriteLine("Odbijeno.");
 
-    else if (user_choice == "4")
-    {
-        Console.WriteLine("Sve transakcije: \n1 - Kako su spremljene\n2 - Sortiranje po cijeni uzlazno\n3 - Sortiranje po cijeni silazno");
-        Console.WriteLine("4 - Sortiranje po opisu abecedno\n5 - Sortiranje po datumu uzlazno\n6 - Sortiranje po datumu silazno\n7 - Svi prihodi");
-        Console.WriteLine("8 - Svi rashodi\n9 - Na temelju odabrane kategorije\n10 - Na temelju tipa i odabrane kategorije\n11 - Povratak\n");
-        string next_user_choice = CheckUserInput("Akcija: ");
-
-        List<Tuple<decimal, bool, string, string, DateTime>> filtered_list = new();
-
-        foreach (var transaction in transactions_list)
-        {
-            if (transaction.Key.Item1 == user_id && transaction.Key.Item3 == account_name) filtered_list.Add(transaction.Value);
         }
 
-        if (next_user_choice == "2") filtered_list.Sort((x, y) => x.Item1.CompareTo(y.Item1));
-        else if (next_user_choice == "3") filtered_list.Sort((x, y) => y.Item1.CompareTo(x.Item1));
-        else if (next_user_choice == "4") filtered_list.Sort((x, y) => string.Compare(x.Item3, y.Item3, StringComparison.Ordinal));
-        else if (next_user_choice == "5") filtered_list.Sort((x, y) => x.Item5.CompareTo(y.Item5));
-        else if (next_user_choice == "6") filtered_list.Sort((x, y) => y.Item5.CompareTo(x.Item5));
-
-        else if (next_user_choice == "7")
+        else if (user_choice == "4")
         {
-            List<Tuple<decimal, bool, string, string, DateTime>> extra_filtered_list = new();
-            foreach (var transaction in filtered_list)
+            while (true)
             {
-                if (transaction.Item2) extra_filtered_list.Add(transaction);
-            }
-            ShowTransactions(extra_filtered_list);
-            return;
-        }
-        else if (next_user_choice == "8")
-        {
-            List<Tuple<decimal, bool, string, string, DateTime>> extra_filtered_list = new();
-            foreach (var transaction in filtered_list)
-            {
-                if (!transaction.Item2) extra_filtered_list.Add(transaction);
-            }
-        }
-        else if (next_user_choice == "9")
-        {
-            List<Tuple<decimal, bool, string, string, DateTime>> extra_filtered_list = new();
-            string category = CheckCategory();
-            foreach (var transaction in filtered_list)
-            {
-                if (transaction.Item3 == category) extra_filtered_list.Add(transaction);
-            }
-            ShowTransactions(extra_filtered_list);
-            return;
-        }
-        else if (next_user_choice == "10")
-        {
-            string category = CheckCategory();
-            string type;
-            do
-            {
-                type = CheckUserInput("Unesite tip transakcije: ");
-            } while (type != "rashod" || type != "prihod");
+                Console.WriteLine("Sve transakcije: \n1 - Kako su spremljene\n2 - Sortiranje po cijeni uzlazno\n3 - Sortiranje po cijeni silazno");
+                Console.WriteLine("4 - Sortiranje po opisu abecedno\n5 - Sortiranje po datumu uzlazno\n6 - Sortiranje po datumu silazno\n7 - Svi prihodi");
+                Console.WriteLine("8 - Svi rashodi\n9 - Na temelju odabrane kategorije\n10 - Na temelju tipa i odabrane kategorije\n11 - Povratak\n");
+                user_choice = CheckUserInput("Akcija: ");
 
+                List<Tuple<decimal, bool, string, string, DateTime>> filtered_list = new();
 
-            foreach (var transaction in filtered_list)
-            {
-                List<Tuple<decimal, bool, string, string, DateTime>> extra_filtered_list = new();
-                if (type == "prihod")
-                {
-                    if (transaction.Item3 == category && transaction.Item2) extra_filtered_list.Add(transaction);
-                }
-                else
-                {
-                    if (transaction.Item3 == category && !transaction.Item2) extra_filtered_list.Add(transaction);
-                }
-                ShowTransactions(extra_filtered_list);
-                return;
-            }
-        }
-        else if (user_choice == "11") return;
-        else
-        {
-            Console.WriteLine("Nepoznata naredba.\n");
-            return;
-        }
-
-        ShowTransactions(filtered_list);
-    }
-    else if (user_choice == "5")
-    {
-        Console.WriteLine("1 - Trenutno stanje računa\n2 - Broj ukupnih transakcija\n3 - Ukupan iznos prihoda i rashoda za odabrani mjesec i godinu\n4 - Postotak udjela rashoda za odabranu kategoriju\n5 - Prosječni iznos transakcije za odabrani mjesec i godinu\n6 - Prosječni iznos transakcije za odabranu kategoriju\n7 - Povratak");
-        user_choice = CheckUserInput("Akcija: ");
-        if (user_choice == "1") Console.WriteLine("Trenutno stanje: " + accounts_list[(user_id, account_name)]);
-        else if (user_choice == "2")
-        {
-            int transaction_number = 0;
-            decimal income = 0;
-            decimal expenses = 0;
-            if (transactions_list.Count > 0)
-            {
                 foreach (var transaction in transactions_list)
                 {
-                    if (transaction.Key.Item1 == user_id && transaction.Key.Item3 == account_name) transaction_number++;
+                    if (transaction.Key.Item1 == user_id && transaction.Key.Item3 == account_name) filtered_list.Add(transaction.Value);
+                }
+                if (user_choice == "1")
+                {
+                    ShowTransactions(filtered_list);
+                    break;
+                }
+                else if (user_choice == "2")
+                {
+                    filtered_list.Sort((x, y) => x.Item1.CompareTo(y.Item1));
+                    break;
+                }
+                else if (user_choice == "3")
+                {
+                    filtered_list.Sort((x, y) => y.Item1.CompareTo(x.Item1));
+                    break;
+                }
+                else if (user_choice == "4")
+                {
+                    filtered_list.Sort((x, y) => string.Compare(x.Item3, y.Item3, StringComparison.Ordinal));
+                    break;
+                }
+                else if (user_choice == "5")
+                {
+                    filtered_list.Sort((x, y) => x.Item5.CompareTo(y.Item5));
+                    break;
+                }
+                else if (user_choice == "6")
+                {
+                    filtered_list.Sort((x, y) => y.Item5.CompareTo(x.Item5));
+                    break;
+                }
+                else if (user_choice == "7")
+                {
+                    List<Tuple<decimal, bool, string, string, DateTime>> extra_filtered_list = new();
+                    foreach (var transaction in filtered_list)
+                    {
+                        if (transaction.Item2) extra_filtered_list.Add(transaction);
+                    }
+                    ShowTransactions(extra_filtered_list);
+                    break;
+                }
+                else if (user_choice == "8")
+                {
+                    List<Tuple<decimal, bool, string, string, DateTime>> extra_filtered_list = new();
+                    foreach (var transaction in filtered_list)
+                    {
+                        if (!transaction.Item2) extra_filtered_list.Add(transaction);
+                    }
+                    break;
+                }
+                else if (user_choice == "9")
+                {
+                    List<Tuple<decimal, bool, string, string, DateTime>> extra_filtered_list = new();
+                    string category = CheckCategory();
+                    foreach (var transaction in filtered_list)
+                    {
+                        if (transaction.Item3 == category) extra_filtered_list.Add(transaction);
+                    }
+                    ShowTransactions(extra_filtered_list);
+                    break;
+                }
+                else if (user_choice == "10")
+                {
+                    string category = CheckCategory();
+                    string type;
+                    do
+                    {
+                        type = CheckUserInput("Unesite tip transakcije: ");
+                    } while (type != "rashod" || type != "prihod");
 
-                    if (transaction.Key.Item1 == user_id && transaction.Key.Item3 == account_name)
+
+                    foreach (var transaction in filtered_list)
+                    {
+                        List<Tuple<decimal, bool, string, string, DateTime>> extra_filtered_list = new();
+                        if (type == "prihod")
+                        {
+                            if (transaction.Item3 == category && transaction.Item2) extra_filtered_list.Add(transaction);
+                        }
+                        else
+                        {
+                            if (transaction.Item3 == category && !transaction.Item2) extra_filtered_list.Add(transaction);
+                        }
+                        ShowTransactions(extra_filtered_list);
+                        break;
+                    }
+                }
+                else if (user_choice == "11") return;
+                else
+                {
+                    Console.WriteLine("Nepoznata naredba.\n");
+                }
+
+                    ShowTransactions(filtered_list);
+                }
+        }
+        else if (user_choice == "5")
+        {
+            Console.WriteLine("1 - Trenutno stanje računa\n2 - Broj ukupnih transakcija\n3 - Ukupan iznos prihoda i rashoda za odabrani mjesec i godinu\n4 - Postotak udjela rashoda za odabranu kategoriju\n5 - Prosječni iznos transakcije za odabrani mjesec i godinu\n6 - Prosječni iznos transakcije za odabranu kategoriju\n7 - Povratak");
+            user_choice = CheckUserInput("Akcija: ");
+            if (user_choice == "1") Console.WriteLine("Trenutno stanje: " + accounts_list[(user_id, account_name)]);
+            else if (user_choice == "2")
+            {
+                int transaction_number = 0;
+                decimal income = 0;
+                decimal expenses = 0;
+                if (transactions_list.Count > 0)
+                {
+                    foreach (var transaction in transactions_list)
+                    {
+                        if (transaction.Key.Item1 == user_id && transaction.Key.Item3 == account_name) transaction_number++;
+
+                        if (transaction.Key.Item1 == user_id && transaction.Key.Item3 == account_name)
+                        {
+                            if (transaction.Value.Item2) income += transaction.Value.Item1;
+                            else expenses += transaction.Value.Item1;
+                        }
+                    }
+                    Console.WriteLine("Stanje: " + accounts_list[(user_id, account_name)]);
+                    if (accounts_list[(user_id, account_name)] < 0) Console.WriteLine("U minusu ste!");
+                    Console.WriteLine("Broj ukupnih transakcija: " + transaction_number);
+                    Console.Write("Prihodi: " + income + ", Rashodi: " + expenses);
+                }
+                else Console.WriteLine("Nema transakcija na tom računu.\n");
+            }
+            else if (user_choice == "3")
+            {
+                decimal income = 0;
+                decimal expenses = 0;
+                DateTime month_year_filter;
+                string user_input_month_year;
+                do
+                {
+                    user_input_month_year = CheckUserInput("Unesite mjesec i godinu u formatu MM-YYYY: ");
+                }
+                while (!DateTime.TryParseExact(user_input_month_year, "MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out month_year_filter));
+
+                foreach (var transaction in transactions_list)
+                {
+                    if (transaction.Key.Item1 == user_id && transaction.Key.Item3 == account_name && transaction.Value.Item5.Month == month_year_filter.Month && transaction.Value.Item5.Year == month_year_filter.Year)
                     {
                         if (transaction.Value.Item2) income += transaction.Value.Item1;
                         else expenses += transaction.Value.Item1;
                     }
                 }
-                Console.WriteLine("Stanje: " + accounts_list[(user_id, account_name)]);
-                if (accounts_list[(user_id, account_name)] < 0) Console.WriteLine("U minusu ste!");
-                Console.WriteLine("Broj ukupnih transakcija: " + transaction_number);
                 Console.Write("Prihodi: " + income + ", Rashodi: " + expenses);
             }
-            else Console.WriteLine("Nema transakcija na tom računu.\n");
-        }
-        else if (user_choice == "3")
-        {
-            decimal income = 0;
-            decimal expenses = 0;
-            DateTime month_year_filter;
-            string user_input_month_year;
-            do
+            else if (user_choice == "4")
             {
-                user_input_month_year = CheckUserInput("Unesite mjesec i godinu u formatu MM-YYYY: ");
+                string category = CheckCategory();
+                decimal expense_sum = 0M;
+                decimal category_expense_sum = 0;
+                foreach (var transaction in transactions_list)
+                {
+                    if (transaction.Key.Item1 == user_id && transaction.Key.Item3 == account_name && !transaction.Value.Item2)
+                    {
+                        expense_sum += transaction.Value.Item1;
+                        if (transaction.Value.Item3 == category) category_expense_sum += transaction.Value.Item1;
+                    }
+                }
+                Console.WriteLine("Rezultat: " + (category_expense_sum / expense_sum) * 100);
             }
-            while (!DateTime.TryParseExact(user_input_month_year, "MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out month_year_filter));
+            else if (user_choice == "5")
+            {
+                decimal transation_sum = 0;
+                int transation_count = 0;
+                DateTime month_year_filter;
+                string user_input_month_year;
+                do
+                {
+                    user_input_month_year = CheckUserInput("Unesite mjesec i godinu u formatu MM-YYYY: ");
+                }
+                while (!DateTime.TryParseExact(user_input_month_year, "MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out month_year_filter));
 
-            foreach (var transaction in transactions_list)
-            {
-                if (transaction.Key.Item1 == user_id && transaction.Key.Item3 == account_name && transaction.Value.Item5.Month == month_year_filter.Month && transaction.Value.Item5.Year == month_year_filter.Year)
+                foreach (var transaction in transactions_list)
                 {
-                    if (transaction.Value.Item2) income += transaction.Value.Item1;
-                    else expenses += transaction.Value.Item1;
+                    if (transaction.Key.Item1 == user_id && transaction.Key.Item3 == account_name && transaction.Value.Item5.Month == month_year_filter.Month && transaction.Value.Item5.Year == month_year_filter.Year)
+                    {
+                        transation_sum += transaction.Value.Item1;
+                        transation_count++;
+                    }
                 }
+                Console.Write("Prosjek: " + decimal.Round(transation_sum / transation_count, 2, MidpointRounding.AwayFromZero));
             }
-            Console.Write("Prihodi: " + income + ", Rashodi: " + expenses);
-        }
-        else if (user_choice == "4")
-        {
-            string category = CheckCategory();
-            decimal expense_sum = 0M;
-            decimal category_expense_sum = 0;
-            foreach (var transaction in transactions_list)
+            else if (user_choice == "6")
             {
-                if (transaction.Key.Item1 == user_id && transaction.Key.Item3 == account_name && !transaction.Value.Item2)
-                {
-                    expense_sum += transaction.Value.Item1;
-                    if (transaction.Value.Item3 == category) category_expense_sum += transaction.Value.Item1;
-                }
-            }
-            Console.WriteLine("Rezultat: " + (category_expense_sum / expense_sum) * 100);
-        }
-        else if (user_choice == "5")
-        {
-            decimal transation_sum = 0;
-            int transation_count = 0;
-            DateTime month_year_filter;
-            string user_input_month_year;
-            do
-            {
-                user_input_month_year = CheckUserInput("Unesite mjesec i godinu u formatu MM-YYYY: ");
-            }
-            while (!DateTime.TryParseExact(user_input_month_year, "MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out month_year_filter));
+                decimal transation_sum = 0;
+                int transation_count = 0;
+                string category = CheckCategory();
 
-            foreach (var transaction in transactions_list)
-            {
-                if (transaction.Key.Item1 == user_id && transaction.Key.Item3 == account_name && transaction.Value.Item5.Month == month_year_filter.Month && transaction.Value.Item5.Year == month_year_filter.Year)
+                foreach (var transaction in transactions_list)
                 {
-                    transation_sum += transaction.Value.Item1;
-                    transation_count++;
+                    if (transaction.Key.Item1 == user_id && transaction.Key.Item3 == account_name && transaction.Value.Item3 == category)
+                    {
+                        transation_sum += transaction.Value.Item1;
+                        transation_count++;
+                    }
                 }
+                Console.Write("Prosjek: " + decimal.Round(transation_sum / transation_count, 2, MidpointRounding.AwayFromZero));
             }
-            Console.Write("Prosjek: " + decimal.Round(transation_sum / transation_count, 2, MidpointRounding.AwayFromZero));
+            else if (user_choice == "7") return;
+            else Console.WriteLine("Nepoznata naredba.\n");
         }
-        else if (user_choice == "6")
-        {
-            decimal transation_sum = 0;
-            int transation_count = 0;
-            string category = CheckCategory();
+        else if (user_choice == "6") break;
 
-            foreach (var transaction in transactions_list)
-            {
-                if (transaction.Key.Item1 == user_id && transaction.Key.Item3 == account_name && transaction.Value.Item3 == category)
-                {
-                    transation_sum += transaction.Value.Item1;
-                    transation_count++;
-                }
-            }
-            Console.Write("Prosjek: " + decimal.Round(transation_sum / transation_count, 2, MidpointRounding.AwayFromZero));
-        }
-        else if (user_choice == "7") return;
         else Console.WriteLine("Nepoznata naredba.\n");
     }
-    else if (user_choice == "6") return;
-
-    else Console.WriteLine("Nepoznata naredba.\n");
 }
 
 //POMOĆNE FUNKCIJE
